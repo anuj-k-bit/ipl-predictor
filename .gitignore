@@ -1,0 +1,34 @@
+# Node
+node_modules/
+dist/
+.eslintcache
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Databases and large dataset files
+backend/IPL.csv
+backend/matches.csv
+
+# Models
+backend/model.pkl
+
+# IDEs and OS
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
