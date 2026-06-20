@@ -7,6 +7,7 @@ import type {
   PredictRequest,
   PredictResponse,
   H2HResponse,
+  BacktestResponse,
 } from "../types";
 
 const api = axios.create({
@@ -34,5 +35,10 @@ export const fetchH2H = async (
   const { data } = await api.get<H2HResponse>("/h2h", {
     params: { team1, team2 },
   });
+  return data;
+};
+
+export const fetchBacktest = async (): Promise<BacktestResponse> => {
+  const { data } = await api.get<BacktestResponse>("/backtest");
   return data;
 };

@@ -21,6 +21,7 @@ import LiveMode          from "./components/LiveMode";
 import ShareCard         from "./components/ShareCard";
 import PredictionLog     from "./components/PredictionLog";
 import PointsTable       from "./components/PointsTable";
+import ModelPerformance  from "./components/ModelPerformance";
 import LoadingSpinner    from "./components/LoadingSpinner";
 import ErrorBanner       from "./components/ErrorBanner";
 
@@ -137,6 +138,9 @@ function App() {
 
   // ── Points table ───────────────────────────────────────────────────────────
   const [showPointsTable, setShowPointsTable] = useState(false);
+
+  // ── Model performance ──────────────────────────────────────────────────────
+  const [showModelPerformance, setShowModelPerformance] = useState(false);
 
   // ── Prediction log ─────────────────────────────────────────────────────────
   const [showPredLog,  setShowPredLog]  = useState(false);
@@ -437,6 +441,12 @@ function App() {
             <PointsTable
               open={showPointsTable}
               onToggle={() => setShowPointsTable(o => !o)}
+            />
+
+            {/* ── Model performance (collapsible, full-width) ── */}
+            <ModelPerformance
+              open={showModelPerformance}
+              onToggle={() => setShowModelPerformance(o => !o)}
             />
           </>
         )}

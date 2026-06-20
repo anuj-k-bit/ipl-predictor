@@ -74,10 +74,8 @@ def real_predict(team1, team2, venue, toss_winner, toss_decision):
     ]])
 
     proba = m.predict_proba(x)[0]
-    classes = list(le_team.inverse_transform(m.classes_))
-    prob_map = dict(zip(classes, proba))
-
-    p1 = round(prob_map.get(team1, 0.5) * 100, 1)
+    # Class 1 corresponds to team1 winning, Class 0 to team2 winning
+    p1 = round(proba[1] * 100, 1)
     p2 = round(100.0 - p1, 1)
 
     return {
@@ -190,6 +188,80 @@ def head_to_head():
 @app.route("/api/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok", "mode": "mock" if use_mock else "real"})
+
+
+@app.route("/api/backtest", methods=["GET"])
+def get_backtest_results():
+    import pandas as pd
+    csv_path = os.path.join(BASE_DIR, "backtest_results.csv")
+    if not os.path.exists(csv_path):
+        return jsonify({
+            "status": "no_data",
+            "message": "Backtest results not generated yet. Please run: python backend/backtest.py"
+        })
+
+    try:
+        df = pd.read_csv(csv_path)
+        total_matches = len(df)
+        if total_matches == 0:
+            return jsonify({
+                "status": "no_data",
+                "message": "Backtest results file is empty."
+            })
+
+        correct_count = int(df["correct"].sum())
+        overall_accuracy = round((correct_count / total_matches) * 100, 1)
+
+        # High confidence >= 60%
+        high_df = df[df["confidence_pct"] >= 60.0]
+        high_count = len(high_df)
+        high_correct = int(high_df["correct"].sum()) if high_count > 0 else 0
+        high_accuracy = round((high_correct / high_count) * 100, 1) if high_count > 0 else 0.0
+
+        # Low confidence < 60%
+        low_df = df[df["confidence_pct"] < 60.0]
+        low_count = len(low_df)
+        low_correct = int(low_df["correct"].sum()) if low_count > 0 else 0
+        low_accuracy = round((low_correct / low_count) * 100, 1) if low_count > 0 else 0.0
+
+        # Generate chart data (50-match rolling accuracy)
+        correct_signals = df["correct"].tolist()
+        chart_data = []
+        for i in range(len(correct_signals)):
+            window = correct_signals[max(0, i-49): i+1]
+            chart_data.append({
+                "match_no": i + 1,
+                "accuracy": round((sum(window) / len(window)) * 100, 1)
+            })
+
+        # Downsample chart_data slightly to make rendering super fast in recharts (every 3rd point)
+        downsampled_chart = chart_data[::3]
+        if chart_data and (chart_data[-1] not in downsampled_chart):
+            downsampled_chart.append(chart_data[-1])
+
+        return jsonify({
+            "status": "success",
+            "total_matches": total_matches,
+            "correct_predictions": correct_count,
+            "overall_accuracy": overall_accuracy,
+            "high_confidence_accuracy": high_accuracy,
+            "low_confidence_accuracy": low_accuracy,
+            "high_confidence_count": high_count,
+            "low_confidence_count": low_count,
+            "chart_data": downsampled_chart
+        })
+    except Exception as e:
+        logging.error(f"Error reading backtest results: {e}")
+        return jsonify({"error": f"Failed to read backtest results: {e}", "status": "error"}), 500
+
+
+@app.route("/api/backtest/chart", methods=["GET"])
+def get_backtest_chart():
+    chart_path = os.path.join(BASE_DIR, "backtest_accuracy_trend.png")
+    if not os.path.exists(chart_path):
+        return "Chart not found", 404
+    from flask import send_file
+    return send_file(chart_path, mimetype="image/png")
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────

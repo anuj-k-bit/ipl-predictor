@@ -49,3 +49,21 @@ export interface PointsEntry {
 }
 
 export interface ApiError { error: string; }
+
+export interface BacktestChartItem {
+  match_no: number;
+  accuracy: number;
+}
+
+export interface BacktestResponse {
+  status: "success" | "no_data" | "error";
+  message?: string;
+  total_matches?: number;
+  correct_predictions?: number;
+  overall_accuracy?: number;
+  high_confidence_accuracy?: number;
+  low_confidence_accuracy?: number;
+  high_confidence_count?: number;
+  low_confidence_count?: number;
+  chart_data?: BacktestChartItem[];
+}
