@@ -159,7 +159,8 @@ function App() {
         setInitLoad(false);
       }
     })();
-    fetch("/api/health")
+    const apiBase = import.meta.env.VITE_API_URL || "/api";
+    fetch(`${apiBase}/health`)
       .then(r => r.json())
       .then(d => setMode(d.mode))
       .catch(() => {});
